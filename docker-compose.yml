@@ -1,0 +1,11 @@
+services:
+  privmask:
+    build: .
+    image: privmask:0.1
+    container_name: privmask
+    ports:
+      - "5000:5000"
+    environment:
+      - PRIVMASK_HOST=0.0.0.0
+      - PRIVMASK_PORT=5000
+    restart: unless-stopped

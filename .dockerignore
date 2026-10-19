@@ -1,0 +1,14 @@
+.git
+.gitignore
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+tests/
+examples/
+docs/
+*.md
+demo.bat
+start_web.bat
+docker-compose.yml
+Dockerfile

@@ -1,0 +1,10 @@
+2026-10-19 10:23:11 [INFO] user 13800138000 login from 192.168.1.10
+2026-10-19 10:23:45 [INFO] session created sid=9f3a2c token=eyJhbGciOiJIUzI1NiJ9
+2026-10-19 10:24:02 [INFO] payment user=13800138000 card=4111111111111111 amount=299.00
+2026-10-19 10:25:33 [WARN] auth failed for 13800138000 from 10.20.30.40
+2026-10-19 10:25:35 [WARN] auth failed for 13800138000 from 10.20.30.40
+2026-10-19 10:26:10 [INFO] profile update email=zhangsan@example.com id=11010519491231002X
+2026-10-19 10:27:44 [INFO] upload file=invoice.pdf size=204800
+2026-10-19 10:28:19 [WARN] abnormal query: select * from users where id = 1 or 1=1
+2026-10-19 10:29:02 [INFO] user 18612345678 logout
+2026-10-19 10:30:00 [ERROR] upstream timeout, retry 3 times

@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>privmask · 中文敏感信息识别与脱敏</title>
+<style>
+  :root {
+    --bg: #eef2f7;
+    --card: #ffffff;
+    --border: #dbe3ec;
+    --text: #1e293b;
+    --muted: #64748b;
+    --accent: #2563eb;
+    --header: #0f172a;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    background: var(--header);
+    color: #fff;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .brand { display: flex; align-items: center; gap: 12px; }
+
+  .logo {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    background: var(--accent);
+    display: grid;
+    place-items: center;
+    font-weight: 600;
+    font-size: 17px;
+    letter-spacing: .5px;
+  }
+
+  .brand h1 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: .3px;
+  }
+
+  .brand p {
+    margin: 0;
+    font-size: 12px;
+    color: #94a3b8;
+  }
+
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 12px;
+  }
+
+  .stat .total {
+    color: #cbd5e1;
+    margin-right: 2px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.12);
+    padding: 4px 10px;
+    border-radius: 999px;
+    color: #e2e8f0;
+  }
+
+  .badge i {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    display: block;
+  }
+
+  main {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);
+    gap: 14px;
+    padding: 14px 20px;
+  }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    background: #fafbfd;
+    flex-wrap: wrap;
+  }
+
+  .panel-head h2 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: #334155;
+  }
+
+  .panel-body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+  }
+
+  textarea {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    outline: none;
+    resize: none;
+    padding: 14px;
+    font-family: inherit;
+    font-size: 13.5px;
+    line-height: 1.75;
+    color: var(--text);
+    background: transparent;
+  }
+
+  .preview {
+    padding: 14px;
+    font-size: 13.5px;
+    line-height: 1.75;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  mark {
+    background: transparent;
+    color: inherit;
+    padding: 1px 3px;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: help;
+  }
+
+  .t-id_card   { background: #fee2e2; color: #991b1b; border-bottom: 2px solid #dc2626; }
+  .t-phone     { background: #ffedd5; color: #9a3412; border-bottom: 2px solid #ea580c; }
+  .t-bank_card { background: #ede9fe; color: #5b21b6; border-bottom: 2px solid #7c3aed; }
+  .t-email     { background: #cffafe; color: #155e75; border-bottom: 2px solid #0891b2; }
+  .t-ipv4      { background: #dcfce7; color: #166534; border-bottom: 2px solid #16a34a; }
+
+  .empty {
+    color: #94a3b8;
+    font-size: 13px;
+    padding: 14px;
+  }
+
+  select, button {
+    font-family: inherit;
+    font-size: 12.5px;
+    padding: 5px 9px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: #334155;
+    cursor: pointer;
+  }
+
+  select:focus, button:focus { outline: 2px solid #bfdbfe; outline-offset: 1px; }
+
+  button:hover { border-color: #94a3b8; }
+
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  button.primary:hover { background: #1d4ed8; }
+
+  .panel-foot {
+    padding: 7px 14px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+    background: #fafbfd;
+  }
+
+  footer {
+    padding: 0 20px 12px;
+    font-size: 12px;
+    color: #94a3b8;
+  }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 28px;
+    transform: translate(-50%, 10px);
+    background: #0f172a;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    opacity: 0;
+    transition: opacity .18s, transform .18s;
+    pointer-events: none;
+  }
+
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (max-width: 1080px) {
+    main { grid-template-columns: 1fr; height: auto; }
+    .panel { height: 300px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo">P</div>
+    <div>
+      <h1>privmask</h1>
+      <p>中文敏感信息识别与脱敏</p>
+    </div>
+  </div>
+  <div class="stat" id="stat"></div>
+</header>
+
+<main>
+  <section class="panel">
+    <div class="panel-head">
+      <h2>原始文本</h2>
+      <button id="btn-sample">载入示例</button>
+    </div>
+    <div class="panel-body">
+      <textarea id="input" spellcheck="false" placeholder="把要处理的文本粘贴到这里，右侧会实时显示识别和脱敏结果"></textarea>
+    </div>
+    <div class="panel-foot"><span id="char-count">0 字符</span></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>识别结果（高亮）</h2>
+      <span id="hit-count" style="font-size:12px;color:#64748b"></span>
+    </div>
+    <div class="panel-body">
+      <div class="preview" id="highlight"></div>
+    </div>
+    <div class="panel-foot">鼠标悬停可查看实体类型</div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>脱敏输出</h2>
+      <div style="display:flex;gap:6px;align-items:center">
+        <select id="strategy">
+          <option value="mask">mask 保留首尾</option>
+          <option value="replace">replace 占位符</option>
+          <option value="hash">hash 哈希</option>
+          <option value="redact">redact 全遮蔽</option>
+        </select>
+        <button id="btn-copy">复制</button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="preview" id="masked"></div>
+    </div>
+    <div class="panel-foot">脱敏不改变文本长度，格式保持可用</div>
+  </section>
+</main>
+
+<footer>基于正则粗筛 + 校验位精筛 · 身份证 GB 11643 · 银行卡 Luhn</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+const TYPE_LABEL = {
+  ID_CARD: "身份证",
+  PHONE: "手机号",
+  BANK_CARD: "银行卡",
+  EMAIL: "邮箱",
+  IPV4: "IP 地址",
+};
+
+const TYPE_COLOR = {
+  ID_CARD: "#dc2626",
+  PHONE: "#ea580c",
+  BANK_CARD: "#7c3aed",
+  EMAIL: "#0891b2",
+  IPV4: "#16a34a",
+};
+
+const SAMPLE = `客服工单 #20261019
+
+客户姓名：张三三
+身份证号：11010519491231002X
+手机号码：13800138000
+备用联系：18612345678
+绑定银行卡：4111111111111111
+电子邮箱：zhangsan@example.com
+
+故障描述：用户反馈 2026-10-18 21:33 从 IP 192.168.1.10 登录后，
+收到一条可疑短信，发送号码 13912345678。
+
+处理记录：已重置密码，建议用户开启二次验证。`;
+
+let debounceTimer = null;
+let lastRequestId = 0;
+
+function toast(message) {
+  const el = $("toast");
+  el.textContent = message;
+  el.classList.add("show");
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => el.classList.remove("show"), 1600);
+}
+
+function renderStat(summary, count) {
+  const stat = $("stat");
+  stat.textContent = "";
+
+  if (!count) {
+    stat.textContent = "未发现敏感信息";
+    return;
+  }
+
+  const total = document.createElement("span");
+  total.className = "total";
+  total.textContent = "命中 " + count + " 处";
+  stat.appendChild(total);
+
+  for (const [type, n] of Object.entries(summary)) {
+    const badge = document.createElement("span");
+    badge.className = "badge";
+
+    const dot = document.createElement("i");
+    dot.style.background = TYPE_COLOR[type] || "#94a3b8";
+    badge.appendChild(dot);
+
+    badge.appendChild(document.createTextNode((TYPE_LABEL[type] || type) + " " + n));
+    stat.appendChild(badge);
+  }
+}
+
+function renderHighlight(segments) {
+  const box = $("highlight");
+  box.textContent = "";
+
+  if (!segments.length) {
+    box.className = "preview empty";
+    box.textContent = "输入文本后，这里会显示每一处被识别出来的敏感信息。";
+    return;
+  }
+
+  box.className = "preview";
+  for (const seg of segments) {
+    if (!seg.type) {
+      box.appendChild(document.createTextNode(seg.text));
+      continue;
+    }
+    const mark = document.createElement("mark");
+    mark.className = "t-" + seg.type.toLowerCase();
+    mark.textContent = seg.text;
+    mark.title = (TYPE_LABEL[seg.type] || seg.type) + " · " + seg.type;
+    box.appendChild(mark);
+  }
+}
+
+async function analyze() {
+  const text = $("input").value;
+  const strategy = $("strategy").value;
+
+  $("char-count").textContent = text.length + " 字符";
+
+  if (!text.trim()) {
+    $("hit-count").textContent = "";
+    $("masked").textContent = "";
+    renderHighlight([]);
+    renderStat({}, 0);
+    return;
+  }
+
+  const requestId = ++lastRequestId;
+
+  try {
+    const response = await fetch("/api/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, strategy }),
+    });
+    const data = await response.json();
+
+    if (!response.ok) throw new Error(data.error || "请求失败");
+    if (requestId !== lastRequestId) return;
+
+    renderHighlight(data.segments);
+    $("masked").textContent = data.masked;
+    $("hit-count").textContent = data.count ? data.count + " 处" : "无命中";
+    renderStat(data.summary, data.count);
+  } catch (err) {
+    $("highlight").className = "preview empty";
+    $("highlight").textContent = "分析失败：" + err.message;
+  }
+}
+
+$("input").addEventListener("input", () => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(analyze, 180);
+});
+
+$("strategy").addEventListener("change", analyze);
+
+$("btn-sample").addEventListener("click", () => {
+  $("input").value = SAMPLE;
+  analyze();
+});
+
+$("btn-copy").addEventListener("click", async () => {
+  const text = $("masked").textContent;
+  if (!text) {
+    toast("没有可复制的内容");
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    toast("已复制到剪贴板");
+  } catch (e) {
+    toast("复制失败，请手动选中");
+  }
+});
+
+$("input").value = SAMPLE;
+analyze();
+</script>
+</body>
+</html>
